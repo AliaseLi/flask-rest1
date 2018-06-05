@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主页</title>
+</head>
+<body>
+<h3>新增用户</h3>
+<form>
+    <input name="name" placeholder="用户名"/><br>
+    <input name="phone" placeholder="手机号"/><br>
+    <button type="button" onclick="addUser()">添加</button>
+</form>
+<form id="f3">
+    <input name="photo" type="file">
+    <button type="button" onclick="upload()">提交</button>
+</form>
+<img src="" width="200" height="200" id="preImg">
+<hr>
+<h3>查询用户</h3>
+<input id="searchKey" placeholder="查询用户的id或name或phone"/>
+<button type="button" onclick="searchUser(searchKey.value)">查询</button>
+
+<div id="updateDiv">
+    <hr>
+    <h3>变更用户</h3>
+    <form id="updateForm">
+        <input name="uid" type="hidden"/>
+        <input name="name" placeholder="用户名"/><br>
+        <input name="phone" placeholder="手机号"/><br>
+        <button type="button" onclick="updateUser()">变更</button>
+    </form>
+</div>
+<hr>
+<div>
+    <ul id="userData">
+
+    </ul>
+</div>
+
+<script src="/static/js/jquery.min.js"></script>
+<script>
+    $(function () {
+        queryAll();
+        $('#updateDiv').hide();
+        $('#preImg').hide();
+        $('#f3 input').val('');
+    });
+    function searchUser(key) {
+        $.ajax('/user/',{
+            type:'get',
+            data:'key='+key,
+            dataType:'json',
+            success:function (data) {
+                alert(data.msg);
+                if (data.state == 'ok'){
+                    $('#updateDiv').fadeIn(1000);
+                    $('#updateForm input')[0].value = data.data.id;
+                    $('#updateForm input')[1].value = data.data.name;
+                    $('#updateForm input')[2].value = data.data.phone;
+                }
+            }
+        })
+    }
+    function queryAll() {
+        $.getJSON('/user/', function (data) {
+            if(data.state == 'ok'){
+                $('#userData').html('');  //清空原内容
+                for(var i=0;i<data.data.length;i++){
+                    user = data.data[i];
+                    $('#userData').append('<li>'+user.name+':'+user.phone+'<button onclick="delUser('+user.id+')">删除</button></li>')
+                }
+            }
+        })
+    }
+    function addUser() {
+         //通过ajax方式上传表单数据
+        $.ajax('/user/',{
+            type:'POST',
+            data:$('form').serialize(),
+            dataType:'json', // 响应的数据类型
+            success: function (data) {
+              // data -> {state:'ok', msg:'添加成功'
+                alert(data.msg);
+          }
+        });
+        queryAll();
+    }
+    function delUser(id) {
+        $.ajax('/user/',{
+            type:'DELETE',
+            data: "id="+id,
+            dataType:'json', // 响应的数据类型
+            success: function (data) {
+                // data -> {state:'ok', msg:'添加成功'
+                alert(data.msg);
+                queryAll();
+            }
+        });
+    }
+    function updateUser() {
+        // 通过ajax方式更新表单数据
+        $.ajax('/user/',{
+            type:'PUT',
+            data: $('#updateForm').serialize(),
+            dataType:'json', // 响应的数据类型
+            success: function (data) {
+                // data -> {state:'ok', msg:'添加成功'
+                alert(data.msg);
+                queryAll();
+            }
+        });
+    }
+    function upload() {
+        $.ajax('/upload/',{
+            type:'post',
+            contentType:false,
+            processData:false,
+            data: new FormData($('#f3')[0]),
+            dataType:'json',
+            success:function (data) {
+                $('#preImg').fadeIn();
+                alert(data.msg);
+                $('#preImg').attr('src',data.path);
+            }
+        })
+    }
+
+</script>
+</body>
+</html>

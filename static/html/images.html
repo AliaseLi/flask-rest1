@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图库</title>
+    <style>
+        ul,li{
+            list-style: none;
+        }
+        li {
+            float: left;
+            text-align: center;
+        }
+        #showImg{
+            display: flex;
+            flex-direction: column;
+        }
+        li img{
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+<div id="showImg">
+    <h3>所有图库</h3>
+    <p>
+    <input id="iid" placeholder="请输入图片id"/>
+    <button type="button" onclick="queryImg(iid.value)">查询</button>
+    </p>
+    <hr>
+    <ul id="imageUL"></ul>
+</div>
+<hr>
+<div id="addImg">
+    <form id="f3">
+        <input name="name" placeholder="名字"/><br>
+        <input id="file" style="display: none" name="photo" type="file" onchange="upload()">
+        <button type="button" onclick="file.click()">选择图片</button>
+    </form>
+</div>
+<script src="/static/js/jquery.min.js"></script>
+<script>
+    $(function () {
+        queryImg('');
+        $('#f3 input').val('');
+    });
+    function queryImg(id) {
+        console.log(id);
+        $('#imageUL').html('');
+        $.getJSON('/image/?id='+id,function (data) {
+            //alert(data.state);
+            if(data.state=='ok'){
+                for(var i=0;i<data.data.length;i++){
+                var li = "<li><img width='200px' height='200px' src='"+data.data[i].url+"'><br><button type='button' onclick='delImg("+data.data[i].id+")'>删除</button></li>";
+                $('#imageUL').append(li);
+                }
+            }
+        })
+    }
+    function delImg(id) {
+        alert(id);
+        $.ajax('/image/',{
+            type:'delete',
+            data:'id='+id,
+            dataType:'json',
+            success:function (data) {
+                alert(data.msg);
+                queryImg('');
+            }
+        })
+    }
+    function upload() {
+        fromdata = new FormData($('#f3')[0]);
+        alert(fromdata.entries()); // 可以把fromdata当成字典用
+        $.ajax('/upload/',{
+            type:'post',
+            contentType:false,  //不声明上传的数据类型，formdata的数据类型为multipart/form-data
+            processData:false,  //不处理上传的数据，不进行表单的数据编码
+            data: new FormData($('#f3')[0]),
+            dataType:'json',
+            success:function (data) {
+                $('#preImg').fadeIn();
+                alert(data.msg);
+                //$('#preImg').attr('src',data.path);
+                queryImg('');
+                $('#f3 input').val('');
+            }
+        })
+    }
+</script>
+</body>
+</html>
