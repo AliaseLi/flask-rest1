@@ -1,0 +1,7 @@
+创建版本库
+git clone <url>  #克隆远程版本库
+git init         #初始化本地版本库
+
+修改和提交
+git status    # 查看状态
+git diff      # 查看变更内容
